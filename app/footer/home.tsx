@@ -110,6 +110,7 @@ export default function HomeScreen() {
 
               // 지도 중심 이동
               map.setCenter(moveLatLng);
+              map.setLevel(3);
 
               // 🔥 기존 마커 클릭 유지됨! (검색 마커 생성 X)
               if (currentInfoWindow) {
