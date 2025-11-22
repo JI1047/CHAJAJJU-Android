@@ -1,8 +1,14 @@
 import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, StatusBar, ActivityIndicator, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  StatusBar,
+  ActivityIndicator,
+  TextInput,
+} from "react-native";
 import { WebView } from "react-native-webview";
 import type { WebView as WebViewType } from "react-native-webview";
-
 
 const KAKAO_APP_KEY = "f143a20f2be877dcef35366b593462b0";
 const BACKEND_URL = "http://13.209.202.27:8080/map/main";
@@ -24,17 +30,26 @@ export default function HomeScreen() {
     </head>
     <body>
       <div id="map"></div>
+
       <script>
         kakao.maps.load(async function() {
+          console.log("카카오 맵 로드됨");
+
           const container = document.getElementById("map");
           const map = new kakao.maps.Map(container, {
-            center: new kakao.maps.LatLng(37.5665, 126.9780),
-            level: 3
+            center: new kakao.maps.LatLng(37.4409248, 127.1356668),
+            level: 5
           });
 
+          let currentInfoWindow = null;
+          let markerList = []; // 🔥 저장된 마커 목록
+
           async function loadMarkers() {
+            console.log("백엔드에서 데이터 로딩 시작");
             const res = await fetch("${BACKEND_URL}");
             const data = await res.json();
+            console.log("불러온 데이터:", data);
+
             const imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
 
             data.forEach((pos) => {
@@ -46,6 +61,8 @@ export default function HomeScreen() {
                 image: markerImage,
               });
 
+              markerList.push({ name: pos.name, marker, lat: pos.latitude, lng: pos.longitude });
+
               const content = \`
                 <div style="padding:8px;font-size:13px;max-width:220px;">
                   <b>\${pos.name}</b><br>
@@ -53,37 +70,67 @@ export default function HomeScreen() {
                   연락처: \${pos.tel ?? "-"}<br>
                   설명: \${pos.description ?? "-"}<br>
                 </div>\`;
+
               const infowindow = new kakao.maps.InfoWindow({ content });
-              kakao.maps.event.addListener(marker, "click", () => infowindow.open(map, marker));
+
+              kakao.maps.event.addListener(marker, "click", () => {
+                if (currentInfoWindow) currentInfoWindow.close();
+                infowindow.open(map, marker);
+                currentInfoWindow = infowindow;
+              });
             });
+
+            console.log("총 마커 개수:", markerList.length);
           }
 
           await loadMarkers();
 
-          // 🔍 React Native에서 검색어가 오면 지도 이동
+          kakao.maps.event.addListener(map, "click", () => {
+            if (currentInfoWindow) {
+              currentInfoWindow.close();
+              currentInfoWindow = null;
+            }
+          });
+
+          // 🔥 React Native → 검색어 전달
           document.addEventListener("message", function(e) {
             const keyword = e.data.trim();
+            console.log("RN에서 받은 검색어:", keyword);
+
             if (!keyword) return;
 
-            // Kakao Places API로 검색
-            const ps = new kakao.maps.services.Places();
-            ps.keywordSearch(keyword, function(result, status) {
-              if (status === kakao.maps.services.Status.OK) {
-                const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                map.setCenter(coords);
-                const marker = new kakao.maps.Marker({ position: coords });
-                marker.setMap(map);
-              } else {
-                alert("검색 결과가 없습니다.");
+            const found = markerList.find(m =>
+              m.name.replace(/\s+/g, "").includes(keyword.replace(/\s+/g, ""))
+            );
+
+            if (found) {
+              console.log("검색 성공! 이동 →", found);
+
+              const moveLatLng = new kakao.maps.LatLng(found.lat, found.lng);
+
+              // 지도 중심 이동
+              map.setCenter(moveLatLng);
+
+              // 🔥 기존 마커 클릭 유지됨! (검색 마커 생성 X)
+              if (currentInfoWindow) {
+                currentInfoWindow.close();
+                currentInfoWindow = null;
               }
-            });
+
+            } else {
+              console.log("검색 실패: 결과 없음");
+              alert("검색 결과가 없습니다.");
+            }
           });
+
+
         });
       </script>
-    </body>
-  </html>`;
 
-  // 🔍 입력 시 지도에 검색어 전달
+    </body>
+  </html>
+  `;
+
   const handleSearchSubmit = () => {
     if (webViewRef.current && searchText.trim()) {
       webViewRef.current.postMessage(searchText);
@@ -93,6 +140,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+
       <View style={styles.header}>
         <Text style={styles.serviceTitle}>CHAJAJJU</Text>
       </View>
@@ -104,11 +152,15 @@ export default function HomeScreen() {
           source={{ html: kakaoMapHTML }}
           javaScriptEnabled
           domStorageEnabled
+          onMessage={(event) => {
+            console.log("WebView에서 메시지:", event.nativeEvent.data);
+          }}
           startInLoadingState
-          renderLoading={() => <ActivityIndicator size="large" color="#2cd543" />}
+          renderLoading={() => (
+            <ActivityIndicator size="large" color="#2cd543" />
+          )}
         />
 
-        {/* 🟩 지도 위에 검색 입력창 */}
         <View style={styles.searchBoxWrapper}>
           <TextInput
             style={styles.searchInput}
@@ -134,7 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderBottomWidth: 2,
     borderBottomColor: "#2cd5431b",
-    marginTop:30,
+    marginTop: 30,
   },
   serviceTitle: { fontSize: 20, fontWeight: "800", color: "#2cd5439e" },
   mapWrapper: {

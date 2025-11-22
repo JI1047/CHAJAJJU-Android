@@ -1,35 +1,35 @@
-import { View, Text, StyleSheet, Pressable, ScrollView, Image,  ActivityIndicator,Alert } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView, Image, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Foundation from '@expo/vector-icons/Foundation';
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Foundation from "@expo/vector-icons/Foundation";
 import { useRouter } from "expo-router";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-/*export default function MyPageScreen() {
+export default function MyPageScreen() {
+  const router = useRouter();
+
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 토큰 가져오기 (SecureStore 사용)
+  // 토큰 가져오기
   const getToken = async () => {
     try {
       const token = await SecureStore.getItemAsync("accessToken");
-      console.log("👉 저장된 JWT:", token);
       return token;
     } catch (error) {
-      console.error("토큰 불러오기 실패:", error);
       return null;
     }
   };
 
-  // ✅ 사용자 정보 불러오기
+  // 사용자 정보 불러오기
   const fetchUserInfo = async () => {
     try {
       const token = await getToken();
 
       if (!token) {
-        Alert.alert("로그인 필요", "로그인 정보가 없습니다.");
+        Alert.alert("로그인 필요", "로그인이 필요합니다.");
         setLoading(false);
         return;
       }
@@ -40,13 +40,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
         },
       });
 
-      if (!response.ok) throw new Error("로그인 정보 조회 실패");
+      if (!response.ok) throw new Error("사용자 정보 조회 실패");
 
       const data = await response.json();
-      console.log("✅ 응답 받은 사용자 정보:", data);
       setUserData(data);
     } catch (error) {
-      console.error("에러:", error);
       Alert.alert("오류", "사용자 정보를 불러오는 데 실패했습니다.");
     } finally {
       setLoading(false);
@@ -57,6 +55,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
     fetchUserInfo();
   }, []);
 
+  // 로딩 중 화면
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -66,27 +65,21 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
     );
   }
 
+  // 사용자 정보 로드 실패
   if (!userData) {
     return (
       <View style={styles.container}>
         <Text>사용자 정보를 불러올 수 없습니다.</Text>
       </View>
     );
-  }*/
-export default function MyPageScreen() {
-const router = useRouter();
+  }
 
+  // 로그아웃 처리
   const handleLogout = async () => {
     try {
-      // ✅ 저장된 토큰 삭제
       await SecureStore.deleteItemAsync("accessToken");
-
-      // ✅ 로그인 페이지로 이동
-      router.replace("/login"); 
-      // replace()는 뒤로가기 시 마이페이지로 돌아가지 않게 함
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
-    }
+      router.replace("/login");
+    } catch (error) {}
   };
 
   return (
@@ -94,17 +87,13 @@ const router = useRouter();
       {/* 상단 프로필 */}
       <View style={styles.profileBox}>
         <Ionicons name="person-circle-outline" size={80} color="#8B5CF6" />
-        <Text style={styles.name}>shushushu</Text>
-        <Text style={styles.id}>0104444444</Text>
-        <Text style={styles.point}>3,300P</Text>
-       {/*<Text style={styles.name}>{userData?.name || "이름 없음"}</Text>
-        <Text style={styles.id}>{userData?.phone || "전화번호 없음"}</Text>
-        <Text style={styles.point}>{userData?.point ?? 0}P</Text>*/}
+        <Text style={styles.name}>{userData?.name}</Text>
+        <Text style={styles.id}>{userData?.phone}</Text>
+        <Text style={styles.point}>{userData?.point}P</Text>
       </View>
 
       {/* 메뉴 버튼 영역 */}
       <View style={styles.menuBox}>
-
         <Pressable
           style={styles.menuItem}
           onPress={() => {
@@ -114,6 +103,7 @@ const router = useRouter();
           <Ionicons name="location-outline" size={28} color="#2563EB" />
           <Text style={styles.menuText}>최근 방문 거점</Text>
         </Pressable>
+
         <Pressable
           style={styles.menuItem}
           onPress={() => {
@@ -124,48 +114,43 @@ const router = useRouter();
           <Text style={styles.menuText}>개인정보수정</Text>
         </Pressable>
 
-         <Pressable style={styles.menuItem} onPress={handleLogout}>
+        <Pressable style={styles.menuItem} onPress={handleLogout}>
           <MaterialCommunityIcons name="logout" size={30} color="#059669" />
           <Text style={styles.menuText}>로그아웃</Text>
         </Pressable>
-
-        
       </View>
 
- <View style={styles.rewardBox}>
-    <Text style={styles.rewardTitle}>포인트 교환 </Text>
-    <Text style={styles.rewardDesc}>
-      종량제 봉투, 기부, 교통카드 충전 중 선택하여 교환할 수 있습니다.
-    </Text>
+      {/* 포인트 교환 섹션 */}
+      <View style={styles.rewardBox}>
+        <Text style={styles.rewardTitle}>포인트 교환</Text>
+        <Text style={styles.rewardDesc}>
+          종량제 봉투, 기부, 교통카드 충전 중 선택하여 교환할 수 있습니다.
+        </Text>
 
-    <View style={styles.rewardPreviewRow}>
-      <View style={styles.rewardPreviewItem}>
-        <MaterialCommunityIcons name="trash-can-outline" size={28} color="#6B7280" />
-        <Text style={styles.rewardText}>종량제 봉투</Text>
+        <View style={styles.rewardPreviewRow}>
+          <View style={styles.rewardPreviewItem}>
+            <MaterialCommunityIcons name="trash-can-outline" size={28} color="#6B7280" />
+            <Text style={styles.rewardText}>종량제 봉투</Text>
+          </View>
+          <View style={styles.rewardPreviewItem}>
+            <MaterialCommunityIcons name="hand-heart-outline" size={28} color="#DC2626" />
+            <Text style={styles.rewardText}>기부하기</Text>
+          </View>
+          <View style={styles.rewardPreviewItem}>
+            <MaterialCommunityIcons name="bus" size={28} color="#2563EB" />
+            <Text style={styles.rewardText}>교통카드</Text>
+          </View>
+        </View>
+
+        <Pressable style={styles.exchangeButton} onPress={() => router.push("/reward")}>
+          <Text style={styles.exchangeButtonText}>교환하러 가기</Text>
+        </Pressable>
       </View>
-      <View style={styles.rewardPreviewItem}>
-        <MaterialCommunityIcons name="hand-heart-outline" size={28} color="#DC2626" />
-        <Text style={styles.rewardText}>기부하기</Text>
-      </View>
-      <View style={styles.rewardPreviewItem}>
-        <MaterialCommunityIcons name="bus" size={28} color="#2563EB" />
-        <Text style={styles.rewardText}>교통카드</Text>
-      </View>
-    </View>
 
-    {/* ✅ 하나의 교환 페이지로 이동 */}
-    <Pressable
-      style={styles.exchangeButton}
-      onPress={() => router.push("/reward")}
-    >
-      <Text style={styles.exchangeButtonText}>교환하러 가기</Text>
-    </Pressable>
-  </View>
-
-
-      {/* 🔽 분리수거 관련 뉴스 / 캠페인 슬라이드 🔽 */}
+      {/* 환경 뉴스 슬라이드 */}
       <View style={styles.newsSection}>
-        <Text style={styles.sectionTitle}>♻️ 분리수거 & 환경 캠페인</Text>
+        <Text style={styles.sectionTitle}>분리수거 & 환경 캠페인</Text>
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.card}>
             <Image
@@ -173,7 +158,7 @@ const router = useRouter();
               style={styles.cardImage}
             />
             <Text style={styles.cardTitle}>플라스틱 줄이기 캠페인</Text>
-            <Text style={styles.cardText}>일회용 컵 대신 텀블러 사용으로 탄소 절감!</Text>
+            <Text style={styles.cardText}>일회용 컵 대신 텀블러 사용으로 탄소 절감.</Text>
           </View>
 
           <View style={styles.card}>
@@ -182,7 +167,7 @@ const router = useRouter();
               style={styles.cardImage}
             />
             <Text style={styles.cardTitle}>분리배출 꿀팁</Text>
-            <Text style={styles.cardText}>헷갈리는 분리수거, 올바른 방법을 알아보세요!</Text>
+            <Text style={styles.cardText}>헷갈리는 분리수거 방법 정리.</Text>
           </View>
 
           <View style={styles.card}>
@@ -191,7 +176,7 @@ const router = useRouter();
               style={styles.cardImage}
             />
             <Text style={styles.cardTitle}>제로웨이스트 실천</Text>
-            <Text style={styles.cardText}>작은 실천이 지구를 바꿉니다 🌍</Text>
+            <Text style={styles.cardText}>작은 실천이 지구를 바꾼다.</Text>
           </View>
         </ScrollView>
       </View>
@@ -201,7 +186,7 @@ const router = useRouter();
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB", alignItems: "center", paddingTop: 70 },
-   loading: {
+  loading: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -230,8 +215,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   menuText: { marginTop: 8, fontSize: 13, fontWeight: "600", color: "#374151" },
-   rewardBox: {
-
+  rewardBox: {
     padding: 20,
     backgroundColor: "#F9FAFB",
     borderTopWidth: 1,
@@ -253,14 +237,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     marginBottom: 20,
   },
-  rewardPreviewItem: {
-    alignItems: "center",
-  },
-  rewardText: {
-    marginTop: 5,
-    fontSize: 13,
-    color: "#4B5563",
-  },
+  rewardPreviewItem: { alignItems: "center" },
+  rewardText: { marginTop: 5, fontSize: 13, color: "#4B5563" },
   exchangeButton: {
     backgroundColor: "#0bc93779",
     paddingVertical: 12,
@@ -294,7 +272,7 @@ const styles = StyleSheet.create({
   cardImage: { width: "100%", height: 120 },
   cardTitle: { fontSize: 14, fontWeight: "700", margin: 8, color: "#1F2937" },
   cardText: { fontSize: 12, color: "#6B7280", marginHorizontal: 8, marginBottom: 10 },
-    center: {
+  center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
