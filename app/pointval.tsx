@@ -43,9 +43,6 @@ export default function PointResult() {
         <Text style={styles.text}>🏠 거점: {place}</Text>
         <Text style={styles.text}>📦 품목: {item}</Text>
         <Text style={styles.text}>💰 적립 포인트: {earned} P</Text>
-        <Text style={[styles.text, styles.total]}>
-          ⭐ 나의 총 포인트: {total} P
-        </Text>
       </View>
 
       <Pressable
